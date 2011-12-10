@@ -9,9 +9,12 @@ package engine.easy.indexer;
  */
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URL;
 
 import java.util.Enumeration;
 import java.util.zip.ZipFile;
@@ -19,23 +22,28 @@ import java.util.zip.ZipEntry;
 
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
+import engine.easy.indexer.writer.EasySearchIndexWriter;
 import engine.easy.util.Appcontants;
+import engine.easy.util.FileType;
+import engine.easy.util.Util;
 
-public class BasicIndexBuilder {
+public class BasicIndexBuilder implements IndexBuilder {
 	
-	public static void createIndexes() {
+	public void createIndexes(String dataBankDirPath, String indexDirPath) throws IOException {
 		try {
 			
-			File dataBankPath = new File(Appcontants.DATA_BANK_DIR_PATH);
-			if(!dataBankPath.exists()){
-				System.out.println("The specified data bank directory does not exist: " + dataBankPath);
+			File dataBank = new File(dataBankDirPath);
+			if(!dataBank.exists()){
+				System.out.println("The specified data bank directory does not exist: " + dataBank);
 			}
 			
 			/*
@@ -49,19 +57,69 @@ public class BasicIndexBuilder {
 			 */
 
 			// Step1 - Create the index directory for given path.
-			Directory indexDir = FSDirectory.getDirectory(dataBankPath);
+			Directory indexDir = FSDirectory.open(new File(indexDirPath));
 			
 			// Step2 - in this case the index directory may be locked by lucene, and you may need the following codes to unlock the directory.
-			if(IndexReader.isLocked(indexDir)){
-				IndexReader.unlock(indexDir);
+			if(IndexWriter.isLocked(indexDir)){
+				IndexWriter.unlock(indexDir);
 			}
 			
-			// Step3 - Now create an index writer on this directory using StandardAnalyzer() which
+			// Step2 - Now create an index writer on this directory using StandardAnalyzer() which
 			// will give you a standard lucene text analyzer,that tokenize text unit. 	
-			IndexWriter indexWriter = new IndexWriter(indexDir, new StandardAnalyzer(), true);
-
+			IndexWriter indexWriter = new IndexWriter(indexDir, new StandardAnalyzer(Version.LUCENE_30), Boolean.TRUE, MaxFieldLength.LIMITED);
+			
 			//Step4 - Now Iterate over the collecion of files and create the index for each file.
-			ZipFile zipSrc = new ZipFile(dataBankPath);
+			if (dataBank.isDirectory()) {
+				for (File file : dataBank.listFiles()) {
+					if (Util.getFileExtension(file).equalsIgnoreCase(FileType.ZIP)) {
+						indexZipDocuments(indexWriter, file);
+					} 
+					else {
+						indexTextDocuments(indexWriter, file);
+					}
+				}
+			}
+
+			indexWriter.optimize(); // Optimze the index structure, which will enhance the efficiency of index but will cost on time.
+			
+			indexWriter.close(); // close the indexwriter
+			indexDir.close(); // close the index directory, so that the file lock will be released
+
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	private void indexTextDocuments(IndexWriter iw, File file) throws IOException {
+		
+		try {
+			FileReader fr = new FileReader(file);
+			String docid = file.getName(); 
+			System.out.println(" >> Indexing  "+ docid);
+			
+			// Create a document for each index document.
+			Document doc = new Document();
+			
+			Field fdDocid = new Field("DOCID", docid, Field.Store.YES, Field.Index.NO); // This field for document id, which will be later used for identification. But this document id will not indexed so it will not be searched.
+			Field fdContent = new Field("CONTENT", fr); // This field is specifically for the content, which will be not stored but indexed in order to search inside the document.
+			
+			doc.add(fdDocid); // Now adding this field to the document
+			doc.add(fdContent); // Now adding this field to the document
+			
+			// add the document.
+			iw.addDocument(doc);
+			
+			// Closed the buffer and inputstream.
+			fr.close();
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.toString());
+		}
+	}
+	
+	private void indexZipDocuments(IndexWriter iw, File file) throws IOException {
+		
+		try {
+			ZipFile zipSrc = new ZipFile(file);
 			Enumeration<? extends ZipEntry> entries = zipSrc.entries();
 			int entryCount = 0;
 
@@ -80,14 +138,14 @@ public class BasicIndexBuilder {
 				// Create a document for each index document.
 				Document doc = new Document();
 				
-				Field fdDocid = new Field("DOCID", docid, Field.Store.COMPRESS, Field.Index.NO); // This field for document id, which will be later used for identification. But this document id will not indexed so it will not be searched.
+				Field fdDocid = new Field("DOCID", docid, Field.Store.YES, Field.Index.NO); // This field for document id, which will be later used for identification. But this document id will not indexed so it will not be searched.
 				Field fdContent = new Field("CONTENT", bfReader); // This field is specifically for the content, which will be not stored but indexed in order to search inside the document.
 				
 				doc.add(fdDocid); // Now adding this field to the document
 				doc.add(fdContent); // Now adding this field to the document
 				
 				// add the document.
-				indexWriter.addDocument(doc);
+				iw.addDocument(doc);
 				
 				// Closed the buffer and inputstream.
 				bfReader.close();
@@ -95,19 +153,18 @@ public class BasicIndexBuilder {
 			}
 			
 			zipSrc.close(); // close the zip file
-
-			indexWriter.optimize(); // Optimze the index structure, which will enhance the efficiency of index but will cost on time.
-			
-			indexWriter.close(); // close the indexwriter
-			indexWriter.close(); // close the index directory, so that the file lock will be released
-
-		} catch(Exception e){
-			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.toString());
 		}
 	}
 	
-	
-	public static void main(String[] args){
-		BasicIndexBuilder.createIndexes();
+	public static void main(String[] args) {
+		
+		try {
+			BasicIndexBuilder biBuilder = new BasicIndexBuilder();
+			biBuilder.createIndexes(Appcontants.DATA_BANK_DIR_PATH, Appcontants.INDEX_DIR_PATH);
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.toString());
+		}
 	}
 }
