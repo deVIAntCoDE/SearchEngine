@@ -8,6 +8,8 @@ public interface AppConstants {
 
 	// Spell checker service
 	public static final String DICTIONARY_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/english_dictionary/fulldictionary00.txt";
+	public static final String DICTIONARY_INDEX_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/english_dictionary/index/";
+
 
 	//Content Field
 	public static final String CONTENT_FIELD = "CONTENT";
