@@ -32,7 +32,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import engine.easy.indexer.writer.EasySearchIndexWriter;
-import engine.easy.util.Appcontants;
+import engine.easy.util.AppConstants;
 import engine.easy.util.FileType;
 import engine.easy.util.Util;
 
@@ -66,7 +66,7 @@ public class BasicIndexBuilder implements IndexBuilder {
 			
 			// Step2 - Now create an index writer on this directory using StandardAnalyzer() which
 			// will give you a standard lucene text analyzer,that tokenize text unit. 	
-			IndexWriter indexWriter = new IndexWriter(indexDir, new StandardAnalyzer(Version.LUCENE_30), Boolean.TRUE, MaxFieldLength.LIMITED);
+			IndexWriter indexWriter = new IndexWriter(indexDir, new StandardAnalyzer(Version.LUCENE_24), Boolean.TRUE, MaxFieldLength.LIMITED);
 			
 			//Step4 - Now Iterate over the collecion of files and create the index for each file.
 			if (dataBank.isDirectory()) {
@@ -133,7 +133,7 @@ public class BasicIndexBuilder implements IndexBuilder {
 				
 				// read the content of each entry
 				InputStream inStream = zipSrc.getInputStream(entry);
-				BufferedReader bfReader = new BufferedReader(new InputStreamReader(inStream, Appcontants.UTF_8)); 
+				BufferedReader bfReader = new BufferedReader(new InputStreamReader(inStream, AppConstants.UTF_8)); 
 				
 				// Create a document for each index document.
 				Document doc = new Document();
@@ -162,7 +162,7 @@ public class BasicIndexBuilder implements IndexBuilder {
 		
 		try {
 			BasicIndexBuilder biBuilder = new BasicIndexBuilder();
-			biBuilder.createIndexes(Appcontants.DATA_BANK_DIR_PATH, Appcontants.INDEX_DIR_PATH);
+			biBuilder.createIndexes(AppConstants.DATA_BANK_DIR_PATH, AppConstants.INDEX_DIR_PATH);
 		} catch (Exception e) {
 			System.out.println("Exception : " + e.toString());
 		}
