@@ -34,8 +34,11 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.spell.PlainTextDictionary;
+import org.apache.lucene.search.spell.SpellChecker;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.IndexReader;
@@ -51,7 +54,39 @@ import engine.easy.util.AppConstants;
 
 public class EasySearchEngine {
 
+	private SpellChecker spellChecker;
+	
 	public EasySearchEngine() {
+		this.spellChecker = getSpecSpellChecker();
+	}
+	
+	private SpellChecker getSpecSpellChecker() {
+		SpellChecker spellchecker = null;
+		 
+		try {
+			File dir = new File(AppConstants.DICTIONARY_INDEX_PATH);
+			Directory directory = FSDirectory.open(dir);
+			spellchecker = new SpellChecker(new RAMDirectory());
+			spellchecker.indexDictionary(new PlainTextDictionary(new File(AppConstants.DICTIONARY_PATH)));
+			
+		} catch (Exception e) {
+			System.out.println("Exception: getSpecSpellChecker" + e.toString());
+		}
+		
+		return spellchecker;
+	}
+	
+	public String[] getSuggestions(String keyword) throws IOException {
+		
+		try {
+			if (this.spellChecker != null) {
+				return spellChecker.suggestSimilar(keyword, AppConstants.SPELL_SUGGESTIONS);
+			}
+		} catch (Exception e) {
+			System.out.println("Exception: getSuggestions" + e.toString());
+		}
+
+		return null;
 	}
 	
 	/**
