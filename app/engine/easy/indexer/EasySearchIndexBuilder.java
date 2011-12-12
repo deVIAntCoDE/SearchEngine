@@ -38,14 +38,14 @@ import engine.easy.util.AppConstants;
 import engine.easy.util.FileType;
 import engine.easy.util.Util;
 
-public class EasySearchIndexBuilder implements IndexBuilder {
+public class EasySearchIndexBuilder  {
 	
 	/**
 	 * Create the index for given collection of documents in the data bank.
 	 * 
      * @throws IOException if the file would have any IO operation.
 	 */
-	public void createIndexes(String dataBankDirPath, String indexDirPath) throws IOException {
+	public static void createIndexes(String dataBankDirPath, String indexDirPath) throws IOException {
 		try {
 			
 			File dataBank = new File(dataBankDirPath);
@@ -100,7 +100,7 @@ public class EasySearchIndexBuilder implements IndexBuilder {
 		}
 	}
 	
-	private String getText(Reader reader) throws IOException {
+	private static String getText(Reader reader) throws IOException {
 		
 		StringBuffer sb = null;
 		
@@ -121,7 +121,7 @@ public class EasySearchIndexBuilder implements IndexBuilder {
 		return sb.toString();
 	}
 
-	private void indexTextDocuments(EasySearchIndexWriter iw, File file) throws IOException {
+	private static void indexTextDocuments(EasySearchIndexWriter iw, File file) throws IOException {
 		
 		try {
 			FileReader fr = new FileReader(file);
@@ -147,7 +147,7 @@ public class EasySearchIndexBuilder implements IndexBuilder {
 		}
 	}
 	
-	private void indexZipDocuments(EasySearchIndexWriter iw, File file) throws IOException {
+	private static void indexZipDocuments(EasySearchIndexWriter iw, File file) throws IOException {
 		
 		try {
 			ZipFile zipSrc = new ZipFile(file);
@@ -188,7 +188,6 @@ public class EasySearchIndexBuilder implements IndexBuilder {
 			System.out.println("Exception : " + e.toString());
 		}
 	}
-	
 	
 	public static void updateDocuments(Map<Integer, Document> docsMap) {
 		
