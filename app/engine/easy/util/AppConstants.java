@@ -10,9 +10,11 @@ public interface AppConstants {
 	public static final String DICTIONARY_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/english_dictionary/fulldictionary00.txt";
 	public static final String DICTIONARY_INDEX_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/english_dictionary/index/";
 
-
 	//Content Field
 	public static final String CONTENT_FIELD = "CONTENT";
+
+	//Spell checker suggestion
+	public static final int SPELL_SUGGESTIONS = 3;
 	
 	//Thumbs Up/Down
 	public static final float THUMBS_UP = 1.0F;
