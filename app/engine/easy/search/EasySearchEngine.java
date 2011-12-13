@@ -293,7 +293,7 @@ public class EasySearchEngine {
 	 * @param ixReader the index reader
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performPesudoRelevanceFeedback(Result[] result) {
+	private Result[] performPesudoRelevanceFeedback(Result[] result) {
 		
 		Result[] results = null;
 		
@@ -316,8 +316,8 @@ public class EasySearchEngine {
 	 * @param ixReader the index reader
 	 * @throws Exception if one is thrown.
 	 */
-	public void performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
-		
+	public Result[] performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
+		Result[] res=null;
 		try {
 			if (!docIds.isEmpty()) {
 				Query q = null;
@@ -328,11 +328,13 @@ public class EasySearchEngine {
 					q = RelevanceFeedBackUtil.performThumbsDown(docIds);
 				
 				//perform the search again with new formulated query!
-				performSearch(q, Boolean.FALSE);
+				res= performSearch(q, Boolean.FALSE);
 			}
+                        
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
 		}
+                return res;
 	}
 	
 	protected List<TermFreq> getTopTerms(List<Term> terms, IndexReader ixReader,

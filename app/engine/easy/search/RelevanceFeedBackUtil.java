@@ -99,7 +99,51 @@ public class RelevanceFeedBackUtil {
 	 */
 	public static Query performThumbsDown(List<Integer> luceneDocIds) {
 
-		return null;
+		Query q = null;
+		
+		try {
+			final Map<String, Integer> frequencyMap = new HashMap<String, Integer>();
+			Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
+			List<String> termsList = new ArrayList<String>();
+
+			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
+			IndexReader indexReader = IndexReader.open(indexDir);
+			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
+			
+			for (Integer docId : luceneDocIds) {
+				
+				TermFreqVector tfv = indexReader.getTermFreqVector(docId, "CONTENT");
+				Document doc = indexReader.document(docId);
+				float boost = doc.getBoost() + AppConstants.THUMBS_UP;
+				doc.setBoost(boost);
+				
+				System.out.print("DOC : "+ docId + " Field : " + tfv.getField() + "\n");
+				
+				for (int i=0; i < tfv.getTermFrequencies().length; i++) {
+					termsList.add(tfv.getTerms()[i]);
+					System.out.println("TERM : "+ tfv.getTerms()[i] + " FREQ : " + tfv.getTermFrequencies()[i]);
+					frequencyMap.put(tfv.getTerms()[i], tfv.getTermFrequencies()[i]);
+				}
+				
+				//put the document with doc id.
+				documentMap.put(docId, doc);
+			}
+			
+			//close the index reader;
+			indexReader.close();
+			
+			//Boost the terms visibility in documents, so these documents more frequently for specific search terms.
+			q = computeTopTermQuery(termsList, frequencyMap, AppConstants.TOP_DOCUMENTS);
+			q.setBoost(-2.0F);
+			
+			//Update the documents with their boost.
+			//EasySearchIndexBuilder.updateDocuments(documentMap);
+
+		} catch (Exception e) {
+			System.out.println("Exception: performThumbsUp" + e.toString());
+		}
+
+		return q;
 	}
 
 	/**

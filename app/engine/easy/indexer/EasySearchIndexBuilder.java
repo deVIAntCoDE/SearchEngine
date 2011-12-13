@@ -49,6 +49,7 @@ public class EasySearchIndexBuilder  {
 		try {
 			
 			File dataBank = new File(dataBankDirPath);
+                       
 			if(!dataBank.exists()){
 				System.out.println("The specified data bank directory does not exist: " + dataBank);
 			}

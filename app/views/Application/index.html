@@ -1,4 +1,46 @@
 #{extends 'main.html' /}
 #{set title:'Home' /}
 
-GROUP * SEARCH ENGINE DESIGN
+<div id="query">
+    <center>
+#{form @query()}
+<div id="psuedorel">
+    
+    <input type="radio" name="rf" value="prf" />Psuedo Relevant FeedBack
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="radio" name="rf" value="ON" />User Relevant FeedBack
+</div>
+  
+    Query <input id="statusupdate" size="70" name="query" value="${params.query}"/> <input type="submit" value="Search" />
+#{/form}
+</center>
+</div>
+
+<br/>
+
+<div id="suggestions">
+    #{include 'Application/sug.html'/}
+</div>
+
+<br/>
+
+
+#{if results}
+<div id="results">
+    
+    #{include 'Application/query.html' /}
+</div>
+
+
+
+
+ 
+
+#{/if}
+
+
+
+
+
+

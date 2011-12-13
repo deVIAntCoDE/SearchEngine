@@ -1,0 +1,33 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+
+<h2>Search Results: </h2>
+<div> <span style="color: white">Result time ${time} milliseconds</span> </div>
+<div>
+    
+    
+<table class="crudContent">
+    <tr>
+        <td>Document Id</td>
+        <td>Document </td>
+        <td>Document Score</td>
+        <td>UP</td>
+        <td>DOwn</td>
+    </tr>
+    
+    #{list items:results, as:'result'}
+    <tr><td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
+        <td><input type="checkbox" name="up" value="${result.id}" /></td>
+        <td><input type="checkbox" name="down" value="${result.id}" /></td></tr>
+    #{/list}
+    
+
+    
+</table>
+${query}
+
+
+</div>

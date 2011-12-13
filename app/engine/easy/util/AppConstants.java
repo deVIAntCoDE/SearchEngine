@@ -3,12 +3,13 @@ package engine.easy.util;
 public interface AppConstants {
 
 	// Main Easy Search Engine Settings 
-	public static final String INDEX_DIR_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/data_collection/indexed_files/";
-	public static final String DATA_BANK_DIR_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/data_collection/databank";
+	public static final String INDEX_DIR_PATH = "/Users/hnocleland/NetBeansProjects/SearchEngine/data_collection/indexed_files/";
+	public static final String DATA_BANK_DIR_PATH = "/Users/hnocleland/NetBeansProjects/SearchEngine/data_collection/databank";
 
 	// Spell checker service
-	public static final String DICTIONARY_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/english_dictionary/fulldictionary00.txt";
-	public static final String DICTIONARY_INDEX_PATH = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/english_dictionary/index/";
+	public static final String DICTIONARY_PATH = "/Users/hnocleland/NetBeansProjects/SearchEngine/english_dictionary/fulldictionary00.txt";
+        
+	public static final String DICTIONARY_INDEX_PATH = "/Users/hnocleland/NetBeansProjects/SearchEngine/english_dictionary/index/";
 
 	//Content Field
 	public static final String CONTENT_FIELD = "CONTENT";

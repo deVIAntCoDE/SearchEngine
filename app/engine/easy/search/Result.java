@@ -12,4 +12,9 @@ public class Result {
 		this.score = score;
 		this.text = text;
 	}
+        
+        public String toString(){
+            return "Id"+this.id+"";
+            
+        }
 }
