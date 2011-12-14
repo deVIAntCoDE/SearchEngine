@@ -41,70 +41,36 @@ public class Application extends Controller {
        render();
     }
     
+	public static void query(String query) {
+		System.out.println("params---" + params.allSimple());
 
-    public static void query(String query){
-        System.out.println("params---"+params.allSimple());
-        
-        if(query==null) index();
-        
-        try {
-            before = new Date();
-            System.out.println("before--------"+before);
-            String[] suggestions=engine.getSuggestions(query);
-            
-            Result[] results=engine.performSearch(query);
-            
-            after=new Date();
-            time =after.getTime()-before.getTime();
-            if(params._contains("rf")){
-                String s=params.get("rf");
-                if(s.equalsIgnoreCase("prf")){
-             results=engine.performPesudoRelevanceFeedback(query);
-           }
-           else{
-               results=engine.performUserRelevanceFeedback(null, true);
-               
-               
-               
-           }
-                
-            }
-               
+		if (query == null)
+			index();
 
-           
-            
-            render("Application/index.html",suggestions, results, time);
-            
-  
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-    
-    
-    
-    
-    public static void userRelevanceFeedback(String ids){
-        System.out.println("params:"+params.allSimple());
-        System.out.println("user relevance-----");
-        if(ids==null)
-            index();
-        System.out.println(ids);
-        Result[] results=engine.performUserRelevanceFeedback(ids);
-        
-        after=new Date();
-        time=after.getTime()- before.getTime();
-        render("Application/index.html", results, time);
-        
-    }
+		try {
+			before = new Date();
+			System.out.println("before--------" + before);
+			String[] suggestions = engine.getSuggestions(query);
 
-    
-    //
-//<ul>
-//    #{list items:results, as:'result' }
-//        <li>${result}</li>
-//    #{/list}
-//</ul>
+			Result[] results = engine.performSearch(query);
 
+			after = new Date();
+			time = after.getTime() - before.getTime();
+			if (params._contains("rf")) {
+				String s = params.get("rf");
+				if (s.equalsIgnoreCase("prf")) {
+					results = engine.performPesudoRelevanceFeedback(query);
+				} else {
+					Map document = null;
+					results = engine.performUserRelevanceFeedback(document);
+				}
+			}
+
+			render("Application/index.html", suggestions, results, time);
+
+		} catch (IOException ex) {
+			System.out.println(ex.getMessage());
+		}
+	}
 }
 
