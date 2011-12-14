@@ -291,7 +291,7 @@ public class EasySearchEngine {
 				    //highlighter.setTextFragmenter(fragmenter);
 				    
 				    //String fragment = highlighter.getBestFragment(analyzer, AppConstants.CONTENT_FIELD, storedField);
-				    System.out.println(storedField); 
+				    //System.out.println(storedField); 
 				}
 			}
 		} catch (Exception e) {
