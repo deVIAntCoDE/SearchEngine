@@ -4,9 +4,16 @@
 #{/set}
 
 <script type="text/javascript">
-    var docIds = [];
+    var ids = [];
     function pickId(id){
-        docIds.push(id);
+        ids.push(id);
+        console.debug(ids);
+    }
+    
+    function urf(){
+        var url = "@{Application.userRelevanceFeedback()}?ids="+ids;
+        window.location=url;
+        
     }
 </script>
 
@@ -57,7 +64,7 @@
                                 #{list items:results, as:'result'}
                                 <tr class="${result_parity}" style="height: 30px">
                                     <td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
-                                    <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(result.id)"/></td>
+                                    <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id})"/></td>
                                     <td><input type="checkbox" name="down" value="${result.id}" /></td>
                                 </tr>
                                 #{/list}
@@ -69,42 +76,34 @@
         </div>
     </div>
     
-    <div class="older-posts">
-        <h3>Relevance FeedBack  <span class="from">for this query</span></h3>
-        <div class="comments">
+
+    
+<div class="older-posts">
+    <div class="post teaser">
+    <h2 class="post-title">
+        <a href="">Perform  Relevance Feedback on this Query</a>
+    </h2>
+    </div>
+</div>
+
+
+
+    <div class="comments">
+        <div class="comment">
+            <div class="comment-metadata">
+                <span class="comment-author">User Relevance</span>
+                <span class="comment-date">Feedback</span>
+            </div>
             <div class="comment-content">
-                Pseudo- Relevance Feedback !<br/>
+                <div class="about">Detail: </div>
+                <a href="#" onclick="urf()">Perform User Relevance Feedback</a><br/>
             </div>
         </div>
-        <div class="comment-content">
-            <div class="about">Detail: </div>
-          
-        </div>
-    </div>
-</div>
-<div class="older-posts">
-            <h3>Older posts <span class="from">from this blog</span></h3>
+        <br/>
 
-                             
-<div class="post teaser">
-    
-    <div class="post-metadata">
-        <span class="post-comments">
-                &nbsp;|&nbsp;   User Relevance Feedback<br/>
-                            </span>
     </div>
-</div>
-                            
-<div class="post teaser">
-   
-    <div class="post-metadata">
-                    <span class="post-comments">
-                &nbsp;|&nbsp; Pseudo Relevance FeedBack
-                            </span>
-                    </div>
-</div>
-</div>
+
 
     
 
-
+     

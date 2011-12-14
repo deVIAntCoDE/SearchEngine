@@ -4,15 +4,13 @@
 <div id="query">
     <center>
 #{form @query()}
-<div id="psuedorel">
-    
-    <input type="radio" name="rf" value="prf" />Psuedo Relevant FeedBack
 
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="radio" name="rf" value="ON" />User Relevant FeedBack
-</div>
   
     Query <input id="statusupdate" size="70" name="query" value="${params.query}"/> <input type="submit" value="Search" />
+    <div id="psuedorel">
+    
+    <input type="radio" name="rf" value="prf" /><span style="color: white">Use Psuedo Relevant FeedBack</span>
+</div>
 #{/form}
 </center>
 </div>

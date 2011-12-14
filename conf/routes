@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                                       Application.index
+GET     /userRelevanceFeedback                  Application.userRelevanceFeedback
 
 
 

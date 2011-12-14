@@ -84,8 +84,16 @@ public class Application extends Controller {
     
     
     
-    public static void userRelevanceFeedback(List<Integer> docIds){
-        
+    public static void userRelevanceFeedback(String ids){
+        System.out.println("params:"+params.allSimple());
+        System.out.println("user relevance-----");
+        if(ids==null)
+            index();
+        System.out.println(ids);
+        String[] Ids=ids.split(",");
+        List<Integer>docIds=new LinkedList<Integer>();
+        for(String docId:Ids)
+            docIds.add(Integer.parseInt(docId));
         Result[] results=engine.performUserRelevanceFeedback(docIds, true);
         
         after=new Date();
