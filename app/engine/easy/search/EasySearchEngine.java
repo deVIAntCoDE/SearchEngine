@@ -282,7 +282,7 @@ public class EasySearchEngine {
 			System.out.println("Exception - displayResults: " + e.toString());
 		}
 	}
-	
+
 	/**
 	 * Perform the pesudo relevance feedback
 	 * 
@@ -290,27 +290,27 @@ public class EasySearchEngine {
 	 * @param ixReader the index reader
 	 * @throws Exception if one is thrown.
 	 */
-	private Result[] performPesudoRelevanceFeedback(Result[] result) {
-		
+	public Result[] performPesudoRelevanceFeedback(String q) {
+
 		Result[] results = null;
-		
+
 		try {
 			//First perform the raw query, get the results and then perform again on highest terms.
 			results = performSearch(q);
 
 			//perform the search again with new formulated query!
-			Query q = RelevanceFeedBackUtil.performPesduoRelevance(result);
+			Query newQuery = RelevanceFeedBackUtil.performPesduoRelevance(results);
 
 			//Get the pesudo relevance results
-			results = performSearch(q, Boolean.FALSE);
+			results = performSearch(newQuery);
 
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
 		}
-		
+
 		return results;
 	}
-	
+
 	/**
 	 * Perform the user relevance feedback
 	 * 
@@ -320,28 +320,27 @@ public class EasySearchEngine {
 	 */
 	public Result[] performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
 
-		Result[] res=null;
+		Result[] results = null;
 
 		try {
 			if (!docIds.isEmpty()) {
 				Query q = null;
-				
+
 				if (isThumbsUp)
 					q = RelevanceFeedBackUtil.performThumbsUp(docIds);
 				else
 					q = RelevanceFeedBackUtil.performThumbsDown(docIds);
-				
+
 				//perform the search again with new formulated query!
-				res= performSearch(q, Boolean.FALSE);
+				results = performSearch(q);
 			}
-                        
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
 		}
 
-                return res;
+		return results;
 	}
-	
+
 	protected List<TermFreq> getTopTerms(List<Term> terms, IndexReader ixReader,
 			int numTermsToReturn) {
 
@@ -414,26 +413,25 @@ public class EasySearchEngine {
 	}	
 
 
-	
-	
+
+
 	public static void main (String args[]) {
 
 		try {
 			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
 
-		
-		EasySearchEngine engine = new EasySearchEngine();
-		Result[] result = engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .", Boolean.FALSE);
-		
-		List<Integer> docIds = new ArrayList<Integer>();
-		docIds.add(result[8].id);
-		//docIds.add(result[13].id);
-		
-		engine.performUserRelevanceFeedback(docIds, Boolean.TRUE);
-//		
-		try {
-			//Thread.sleep(2 * 10000);
-			engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .", Boolean.FALSE);
+			IndexReader indexReader = IndexReader.open(indexDir);
+			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
+
+			EasySearchEngine engine = new EasySearchEngine();
+			Result[] results = engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .");
+
+			List<Integer> docIds = new ArrayList<Integer>();
+			docIds.add(results[8].id);
+			docIds.add(results[13].id);
+
+			results = engine.performUserRelevanceFeedback(docIds, Boolean.TRUE);
+
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
