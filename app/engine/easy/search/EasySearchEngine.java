@@ -118,10 +118,10 @@ public class EasySearchEngine {
 	 * @return the list of highest ranked results.
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performSearch(String query, boolean isPesudoRelevanceFeedBack) {
+	public Result[] performSearch(String query) {
 		
 		Query q = getQuery(query);
-		return performSearch(q, isPesudoRelevanceFeedBack);
+		return performSearch(q);
 	}
 	
 	/**
@@ -131,7 +131,7 @@ public class EasySearchEngine {
 	 * @return the list of highest ranked results.
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performSearch(Query query, boolean isPesudoRelevanceFeedBack) {
+	public Result[] performSearch(Query query) {
 		
 		Result[] results = null;
 		try {
@@ -146,10 +146,7 @@ public class EasySearchEngine {
 			results = getResults(query, indexReader, esiReader);
 			//Display the results!
 			displayResults(results, indexReader);
-			
-			if (isPesudoRelevanceFeedBack) {
-				results = performPesudoRelevanceFeedback(results);
-			}			
+						
 		} catch (Exception e) {
 			System.out.println("Exception: performSearch " + e.toString());
 		}
@@ -293,14 +290,19 @@ public class EasySearchEngine {
 	 * @param ixReader the index reader
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performPesudoRelevanceFeedback(Result[] result) {
+	public Result[] performPesudoRelevanceFeedback(String q) {
 		
 		Result[] results = null;
 		
 		try {
+			//First perform the raw query, get the results and then perform again on highest terms.
+			results = performSearch(q);
+			
 			//perform the search again with new formulated query!
-			Query q = RelevanceFeedBackUtil.performPesduoRelevance(result);
-			results = performSearch(q, Boolean.FALSE);
+			Query newQuery = RelevanceFeedBackUtil.performPesduoRelevance(results);
+			
+			//Get the pesudo relevance results
+			results = performSearch(newQuery);
 
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
@@ -316,7 +318,9 @@ public class EasySearchEngine {
 	 * @param ixReader the index reader
 	 * @throws Exception if one is thrown.
 	 */
-	public void performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
+	public Result[] performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
+		
+		Result[] results = null;
 		
 		try {
 			if (!docIds.isEmpty()) {
@@ -328,11 +332,13 @@ public class EasySearchEngine {
 					q = RelevanceFeedBackUtil.performThumbsDown(docIds);
 				
 				//perform the search again with new formulated query!
-				performSearch(q, Boolean.FALSE);
+				results = performSearch(q);
 			}
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
 		}
+		
+		return results;
 	}
 	
 	protected List<TermFreq> getTopTerms(List<Term> terms, IndexReader ixReader,
@@ -411,18 +417,21 @@ public class EasySearchEngine {
 	
 	public static void main (String args[]) {
 		
-		EasySearchEngine engine = new EasySearchEngine();
-		Result[] result = engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .", Boolean.FALSE);
-		
-		List<Integer> docIds = new ArrayList<Integer>();
-		docIds.add(result[8].id);
-		//docIds.add(result[13].id);
-		
-		engine.performUserRelevanceFeedback(docIds, Boolean.TRUE);
-//		
 		try {
-			//Thread.sleep(2 * 10000);
-			engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .", Boolean.FALSE);
+			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
+			
+			IndexReader indexReader = IndexReader.open(indexDir);
+			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
+			
+			EasySearchEngine engine = new EasySearchEngine();
+			Result[] results = engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .");
+			
+			List<Integer> docIds = new ArrayList<Integer>();
+			docIds.add(results[8].id);
+			docIds.add(results[13].id);
+			
+			results = engine.performUserRelevanceFeedback(docIds, Boolean.TRUE);
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
