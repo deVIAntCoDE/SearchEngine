@@ -7,10 +7,10 @@
 
 
 <form action="@{Application.query()}" autocomplete="off" method="get">
-    Query <input id="txt" size="70" name="query" value="${params.query}"/> 
+    <span style="color:white">Query</span> <input id="txt" size="70" name="query" value="${params.query}"/> 
     <input type="submit" value="Search" autocomplete=off/>
     <div id="suggest" style="visibility:hidden;border:#000000 1px solid;width:150px;"></div>
-        <div id="psuedorel">
+        <div id="psuedorel"><br/>
             <input type="radio" name="rf" value="prf" /><span style="color: white">Use Pseudo Relevant FeedBack</span>
         </div>
 </form>
@@ -24,10 +24,6 @@
 
 
 <br/>
-
-<div id="suggestions">
-    #{include 'Application/sug.html'/}
-</div>
 
 <br/>
 

@@ -21,7 +21,10 @@
 
 
 
+#{if time}
 
+gagabooboo
+#{/if}
 
      
 <div class="post ">
@@ -30,6 +33,7 @@
     </h2>
     <div class="post-metadata">
         <span class="post-author">Query time:</span>,
+        <span style="color: white">${time}</span>
         <span class="post-date">milliseconds</span>
                     <span class="post-comments">
                 &nbsp;|&nbsp; condition: insert condition here with or without relevance feedback!!!
@@ -67,7 +71,7 @@
                             <tbody>
                                 #{list items:results, as:'result'}
                                 <tr class="${result_parity}" style="height: 30px; text-align: center">
-                                    <td>${result_index}</td><td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
+                                    <td>${result_index}</td><td>${result.docId}</td><td>${result.higlightedText}</td><td>${result.score}</td>
                                     <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id})"/></td>
                                     <td><input type="checkbox" name="down" value="${result.id}" onclick="pickId('-'+${result.id})"/></td>
                                 </tr>
