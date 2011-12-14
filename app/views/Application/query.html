@@ -3,6 +3,17 @@
     <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/tags.css'}" />
 #{/set}
 
+<script type="text/javascript">
+    var docIds = [];
+    function pickId(id){
+        docIds.push(id);
+    }
+</script>
+
+
+
+
+
 
      
 <div class="post ">
@@ -46,7 +57,7 @@
                                 #{list items:results, as:'result'}
                                 <tr class="${result_parity}" style="height: 30px">
                                     <td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
-                                    <td><input type="checkbox" name="up" value="${result.id}" /></td>
+                                    <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(result.id)"/></td>
                                     <td><input type="checkbox" name="down" value="${result.id}" /></td>
                                 </tr>
                                 #{/list}

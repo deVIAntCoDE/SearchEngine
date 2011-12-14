@@ -290,6 +290,7 @@ public class EasySearchEngine {
 	 * @param ixReader the index reader
 	 * @throws Exception if one is thrown.
 	 */
+        
 	public Result[] performPesudoRelevanceFeedback(String q) {
 
 		Result[] results = null;
@@ -398,10 +399,6 @@ public class EasySearchEngine {
 		return result;
 	}
 
-
-
-
-
 	private class TermFreq {
 		String term; // term
 		double freq; // freq
@@ -411,8 +408,6 @@ public class EasySearchEngine {
 			this.freq = freq;
 		}
 	}	
-
-
 
 
 	public static void main (String args[]) {

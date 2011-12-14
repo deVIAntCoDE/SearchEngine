@@ -26,33 +26,23 @@ public class Application extends Controller {
     public static void loaddefault(){
          File indexBank =new File(AppConstants.INDEX_DIR_PATH);
          if(!indexBank.exists()){
-				  try {
-            EasySearchIndexBuilder.createIndexes(AppConstants.DATA_BANK_DIR_PATH, AppConstants.INDEX_DIR_PATH);
-            
-        } catch (Exception e) {
+             try {
+                 EasySearchIndexBuilder.createIndexes(AppConstants.DATA_BANK_DIR_PATH, AppConstants.INDEX_DIR_PATH);
+             } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-         
          }
          else{
              System.out.println("Indexes exist!!!!!");
          }
-        
-        
-    }
+   }
 
-    
-    
-    public static void index() {
-       
- 
-        render();
+   public static void index() {
+       render();
     }
     
 
-    
     public static void query(String query){
-        
         System.out.println("params---"+params.allSimple());
         
         if(query==null) index();
@@ -61,17 +51,18 @@ public class Application extends Controller {
             before = new Date();
             System.out.println("before--------"+before);
             String[] suggestions=engine.getSuggestions(query);
-            Result[] results=engine.performSearch(query, false);
+            
+            Result[] results=engine.performSearch(query);
             
             after=new Date();
             time =after.getTime()-before.getTime();
             if(params._contains("rf")){
                 String s=params.get("rf");
                 if(s.equalsIgnoreCase("prf")){
-             results=engine.performSearch(query, true);
+             results=engine.performPesudoRelevanceFeedback(query);
            }
            else{
-               results=engine.performSearch(query, false);
+               results=engine.performUserRelevanceFeedback(null, true);
                
                
                
