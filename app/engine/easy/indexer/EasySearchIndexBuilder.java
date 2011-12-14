@@ -133,7 +133,7 @@ public class EasySearchIndexBuilder  {
 			Document doc = new Document();
 			
 			Field fdDocid = new Field("DOCID", docid, Field.Store.YES, Field.Index.NO); // This field for document id, which will be later used for identification. But this document id will not indexed so it will not be searched.
-			Field fdContent = new Field(AppConstants.CONTENT_FIELD, getText(fr), Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.YES);
+			Field fdContent = new Field(AppConstants.CONTENT_FIELD, getText(fr), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
 
 			doc.add(fdDocid); // Now adding this field to the document
 			doc.add(fdContent); // Now adding this field to the document
@@ -171,7 +171,7 @@ public class EasySearchIndexBuilder  {
 				Document doc = new Document();
 				
 				Field fdDocid = new Field("DOCID", docid, Field.Store.YES, Field.Index.NO); // This field for document id, which will be later used for identification. But this document id will not indexed so it will not be searched.
-				Field fdContent = new Field(AppConstants.CONTENT_FIELD, getText(bfReader), Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.YES); // This field is specifically for the content, which will be not stored but indexed in order to search inside the document.
+				Field fdContent = new Field(AppConstants.CONTENT_FIELD, getText(bfReader), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES); // This field is specifically for the content, which will be not stored but indexed in order to search inside the document.
 				
 				doc.add(fdDocid); // Now adding this field to the document
 				doc.add(fdContent); // Now adding this field to the document
