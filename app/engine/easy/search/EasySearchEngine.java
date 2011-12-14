@@ -55,29 +55,29 @@ import engine.easy.util.AppConstants;
 public class EasySearchEngine {
 
 	private SpellChecker spellChecker;
-	
+
 	public EasySearchEngine() {
 		this.spellChecker = getSpecSpellChecker();
 	}
-	
+
 	private SpellChecker getSpecSpellChecker() {
 		SpellChecker spellchecker = null;
-		 
+
 		try {
 			File dir = new File(AppConstants.DICTIONARY_INDEX_PATH);
 			Directory directory = FSDirectory.open(dir);
 			spellchecker = new SpellChecker(new RAMDirectory());
 			spellchecker.indexDictionary(new PlainTextDictionary(new File(AppConstants.DICTIONARY_PATH)));
-			
+
 		} catch (Exception e) {
 			System.out.println("Exception: getSpecSpellChecker" + e.toString());
 		}
-		
+
 		return spellchecker;
 	}
-	
+
 	public String[] getSuggestions(String keyword) throws IOException {
-		
+
 		try {
 			if (this.spellChecker != null) {
 				return spellChecker.suggestSimilar(keyword, AppConstants.SPELL_SUGGESTIONS);
@@ -88,7 +88,7 @@ public class EasySearchEngine {
 
 		return null;
 	}
-	
+
 	/**
 	 * Get the luecene query object for given string query
 	 * 
@@ -98,10 +98,10 @@ public class EasySearchEngine {
 	 */
 	private Query getQuery(String query) {
 		Query q = null;
-		
+
 		try {
 			QueryParser qparser = new QueryParser(Version.LUCENE_30, AppConstants.CONTENT_FIELD, new EasySearchAnalyzer());
-			
+
 			// now you can use the query parser to parse the query.
 			q = qparser.parse(query);
 		} catch (Exception e) {
@@ -118,12 +118,12 @@ public class EasySearchEngine {
 	 * @return the list of highest ranked results.
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performSearch(String query, boolean isPesudoRelevanceFeedBack) {
-		
+	public Result[] performSearch(String query) {
+
 		Query q = getQuery(query);
-		return performSearch(q, isPesudoRelevanceFeedBack);
+		return performSearch(q);
 	}
-	
+
 	/**
 	 * Perform the search for given query
 	 * 
@@ -131,29 +131,26 @@ public class EasySearchEngine {
 	 * @return the list of highest ranked results.
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performSearch(Query query, boolean isPesudoRelevanceFeedBack) {
-		
+	public Result[] performSearch(Query query) {
+
 		Result[] results = null;
 		try {
 			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
-			
+
 			IndexReader indexReader = IndexReader.open(indexDir);
 			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
-			
+
 			System.out.println("\n >> QUERY: " + query.toString());
-			
+
 			// Get the results!!
 			results = getResults(query, indexReader, esiReader);
 			//Display the results!
 			displayResults(results, indexReader);
-			
-			if (isPesudoRelevanceFeedBack) {
-				results = performPesudoRelevanceFeedback(results);
-			}			
+
 		} catch (Exception e) {
 			System.out.println("Exception: performSearch " + e.toString());
 		}
-		
+
 		return results;
 	}
 
@@ -169,37 +166,37 @@ public class EasySearchEngine {
 	 */
 	public Result[] getResults(Query query, IndexReader ixReader, 
 			EasySearchIndexReader esiReader) {
-		
+
 		Map<Integer, Result> results = null;
-		
+
 		try {
 			Set<Term> terms = new HashSet<Term>();
 			query.extractTerms(terms);
-			
+
 			results = new HashMap<Integer, Result>();
 			Iterator<Term> itr = terms.iterator();
-			
+
 			while (itr.hasNext()) {
 				Term term = itr.next();
-				
+
 				TermDocs docs = ixReader.termDocs(term);
 				int docFreq = ixReader.docFreq(term); // get the document frequency of the term from lucene's index reader
 				int docNum = esiReader.recordCount(AppConstants.CONTENT_FIELD); // get the total record of the field from lucene extra index (you may think it is also possible to use ixreader.maxDoc() here, but the ixreader.maxDoc() only returns the number of documents, while some documents may not have the search field (although every document has the search field in this example))
-				
+
 				while (docs.next()) {
 					int id = docs.doc(); // get the internal lucene's id of the document
 					int termFreq = docs.freq(); // get the frequency of the term in this document
 					int docLen = esiReader.docLength(id, AppConstants.CONTENT_FIELD); // get the length of the document from lucene extra index.
 					double avgDocLen = esiReader.avgFieldLength(AppConstants.CONTENT_FIELD); // get the average length of the search field from lucene extra index.
 					Document document = ixReader.document(id);	//get the particular document.
-					
+
 					// Compute the scoring with BM25 ranking and also include other scoring factors such as (relevance feedback based on terms) 
 					BM25 bm25 = new BM25();
 					//System.out.println(bm25.getInfo());
-					
+
 					// Also add the document boost in the ranking score.
 					double termWeight = bm25.score(termFreq, docNum, docLen, avgDocLen, 1d, docFreq) + document.getBoost();
-					
+
 					if(results.containsKey(id)){
 						results.get(id).score = results.get(id).score + termWeight;
 					} else{
@@ -208,16 +205,16 @@ public class EasySearchEngine {
 					}
 				}
 			}
-			
+
 			return sortArray(results, AppConstants.TOP_RESULTS);
 
 		} catch (Exception e) {
 			System.out.println("Exception: getResults " + e.toString());
 		}
-				
+
 		return null;
 	}
-		
+
 	/**
 	 * Sort the results on highest ranking.
 	 * 
@@ -232,7 +229,7 @@ public class EasySearchEngine {
 			resultArray[pos] = result;
 			pos++;
 		}
-		
+
 		//Sort the results
 		Arrays.sort(resultArray, new Comparator<Result>(){
 			public int compare(Result r1, Result r2) {
@@ -245,7 +242,7 @@ public class EasySearchEngine {
 				}
 			}
 		});
-		
+
 		//Top results
 		Result[] topArray = null;
 		if (resultArray.length > numberOfResults) {
@@ -261,7 +258,7 @@ public class EasySearchEngine {
 
 		return topArray;
 	}
-	
+
 	/**
 	 * Display the results in highest ranking order
 	 * 
@@ -270,7 +267,7 @@ public class EasySearchEngine {
 	 * @throws Exception if one is thrown.
 	 */
 	public void displayResults(Result[] results, IndexReader ixReader) {
-		
+
 		try {
 			// Now output ranked results;
 			for(int pos=0; pos<results.length; pos++){
@@ -298,8 +295,13 @@ public class EasySearchEngine {
 		Result[] results = null;
 		
 		try {
+			//First perform the raw query, get the results and then perform again on highest terms.
+			results = performSearch(q);
+
 			//perform the search again with new formulated query!
 			Query q = RelevanceFeedBackUtil.performPesduoRelevance(result);
+
+			//Get the pesudo relevance results
 			results = performSearch(q, Boolean.FALSE);
 
 		} catch (Exception e) {
@@ -317,7 +319,9 @@ public class EasySearchEngine {
 	 * @throws Exception if one is thrown.
 	 */
 	public Result[] performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
+
 		Result[] res=null;
+
 		try {
 			if (!docIds.isEmpty()) {
 				Query q = null;
@@ -334,6 +338,7 @@ public class EasySearchEngine {
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
 		}
+
                 return res;
 	}
 	
@@ -393,25 +398,29 @@ public class EasySearchEngine {
 
 		return result;
 	}
-	    
 
-	
+
+
 
 
 	private class TermFreq {
 		String term; // term
 		double freq; // freq
-		
+
 		TermFreq(String sTerm, double freq) {
 			this.term = sTerm;
 			this.freq = freq;
 		}
 	}	
-	
+
 
 	
 	
 	public static void main (String args[]) {
+
+		try {
+			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
+
 		
 		EasySearchEngine engine = new EasySearchEngine();
 		Result[] result = engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .", Boolean.FALSE);
