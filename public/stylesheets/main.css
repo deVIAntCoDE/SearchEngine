@@ -554,3 +554,21 @@ tr.odd {
     background: pink;
 }
 
+#suggest{
+ 	position:absolute;
+ 	background:#fff;
+ 	width:150px;
+ 	}
+ 
+ #suggest div{
+ 	background:#fff;
+ 	color:#000;
+ 	padding-left:4px;
+ 	cursor:hand;
+ 	text-align:left;
+ 	}
+ 
+ #suggest div.over{
+ 	color:#fff;
+ 	background:#000;
+ 	}

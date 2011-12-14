@@ -1,19 +1,27 @@
 #{extends 'main.html' /}
 #{set title:'Home' /}
+        #{script src:"autocomplete.js" /}
 
 <div id="query">
     <center>
-#{form @query()}
+
+
+<form action="@{Application.query()}" autocomplete="off" method="get">
+    Query <input id="txt" size="70" name="query" value="${params.query}"/> 
+    <input type="submit" value="Search" autocomplete=off/>
+    <div id="suggest" style="visibility:hidden;border:#000000 1px solid;width:150px;"></div>
+        <div id="psuedorel">
+            <input type="radio" name="rf" value="prf" /><span style="color: white">Use Pseudo Relevant FeedBack</span>
+        </div>
+</form>
 
   
-    Query <input id="statusupdate" size="70" name="query" value="${params.query}"/> <input type="submit" value="Search" />
-    <div id="psuedorel">
-    
-    <input type="radio" name="rf" value="prf" /><span style="color: white">Use Psuedo Relevant FeedBack</span>
-</div>
-#{/form}
+
 </center>
 </div>
+
+
+
 
 <br/>
 

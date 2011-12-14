@@ -411,7 +411,7 @@ public class EasySearchEngine {
 
         
         
-        	public Result[] performUserRelevanceFeedback(String Ids) {
+        	public Result[] performUserRelevanceFeedback(Map Ids) {
 
 		Result[] results = null;
 

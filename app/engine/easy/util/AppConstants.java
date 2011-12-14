@@ -42,5 +42,6 @@ public interface AppConstants {
 	
 	// Test Easy Search Engine Settings
 	public static final String TXT_FILE = "/Users/Deminem/Desktop/MSC_workspace/EasySearchEngine/data_collection/test/Resume_txt_version.txt";
+        public static final Integer RESULTS_SIZE=15;
 
 }

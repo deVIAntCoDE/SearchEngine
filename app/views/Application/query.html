@@ -43,7 +43,10 @@
                     <div id="crudListTable">
                         <table style="width: 100%">
                             <thead style="color: #B8C569">
-                                <tr style="height: 40px; text-align: left; background: #B8C569" bgcolor="#B8C569">
+                                <tr style="height: 40px; text-align: center; background: #B8C569" bgcolor="#B8C569">
+                                    <th style="color: #3C4313">
+                                        Document Rank
+                                    </th>
                                     <th style="color: #3C4313">
                                         Document ID
                                     </th>
@@ -63,8 +66,8 @@
                             </thead>
                             <tbody>
                                 #{list items:results, as:'result'}
-                                <tr class="${result_parity}" style="height: 30px">
-                                    <td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
+                                <tr class="${result_parity}" style="height: 30px; text-align: center">
+                                    <td>${result_index}</td><td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
                                     <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id})"/></td>
                                     <td><input type="checkbox" name="down" value="${result.id}" onclick="pickId('-'+${result.id})"/></td>
                                 </tr>
