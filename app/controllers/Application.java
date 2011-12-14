@@ -21,7 +21,8 @@ public class Application extends Controller {
     static public EasySearchEngine engine = new EasySearchEngine();
     public static Date before;
     public static Date after;
-    public static long time;
+    public static String time=null;
+    public static long t=0;
     
     @Before
     public static void loaddefault() {
@@ -48,10 +49,10 @@ public class Application extends Controller {
             index();
         }
         Result[] results=null;
-        try {
+     
             before = new Date();
             System.out.println("before--------" + before);
-            String[] suggestions = engine.getSuggestions(query);
+           // String[] suggestions = engine.getSuggestions(query);
            
             if (params._contains("rf")) {
                 results = engine.performPesudoRelevanceFeedback(query);
@@ -60,17 +61,15 @@ public class Application extends Controller {
             results = engine.performSearch(query); 
             }
             after = new Date();
-            time = after.getTime() - before.getTime();
+            t = after.getTime() - before.getTime();
             System.out.println("query time=============="+time);
-            render("Application/index.html", suggestions, results, time);
-        }
-        catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
-        
-       
+            time=String.valueOf(t);
+            
+            render("Application/index.html",results, time);
     }
-    
+       
+       
+
     
     
     public static void userRelevanceFeedback(String ids) {
@@ -100,7 +99,8 @@ public class Application extends Controller {
         }
         Result[] results = engine.performUserRelevanceFeedback(docIds);
         after=new Date();
-        time=after.getTime()- before.getTime();
+        t=after.getTime()- before.getTime();
+          System.out.println("query time=============="+time);
         render("Application/index.html", results, time);
         
     }
