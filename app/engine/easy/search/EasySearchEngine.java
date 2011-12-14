@@ -7,7 +7,9 @@ package engine.easy.search;
  * 
  */
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.lucene.analysis.Analyzer;
@@ -56,6 +59,8 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermFreqVector;
+
+import com.mysql.jdbc.Buffer;
 
 import engine.easy.analyzer.EasySearchAnalyzer;
 import engine.easy.indexer.reader.EasySearchIndexReader;
@@ -151,7 +156,7 @@ public class EasySearchEngine {
 			IndexReader indexReader = IndexReader.open(indexDir);
 			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
 
-			System.out.println("\n >> QUERY: " + query.toString());
+			//System.out.println("\n >> QUERY: " + query.toString());
 
 			// Get the results!!
 			results = getResults(query, indexReader, esiReader, relevanceDocMap);
@@ -201,7 +206,8 @@ public class EasySearchEngine {
 					int docLen = esiReader.docLength(id, AppConstants.CONTENT_FIELD); // get the length of the document from lucene extra index.
 					double avgDocLen = esiReader.avgFieldLength(AppConstants.CONTENT_FIELD); // get the average length of the search field from lucene extra index.
 					Document document = ixReader.document(id);	//get the particular document.
-
+					String storedField = extractData(document.get(AppConstants.CONTENT_FIELD));
+					
 					// Compute the scoring with BM25 ranking and also include other scoring factors such as (relevance feedback based on terms) 
 					BM25 bm25 = new BM25();
 					//System.out.println(bm25.getInfo());
@@ -211,14 +217,14 @@ public class EasySearchEngine {
 					
 					//Add each document relevance score!
 					if (relevanceDocMap != null && !relevanceDocMap.isEmpty() && relevanceDocMap.containsKey(id))
-						termWeight += relevanceDocMap.get(id);
+						termWeight = termWeight * relevanceDocMap.get(id);
 					
-					System.out.println("lucene id" + id  + " Doc id " + document.getField("DOCID").stringValue() + "wieght" + termWeight);
+					//System.out.println("lucene id" + id  + " Doc id " + document.getField("DOCID").stringValue() + "wieght" + termWeight);
 					
 					if(results.containsKey(id)){
 						results.get(id).score = results.get(id).score + termWeight;
 					} else{
-						Result result = new Result(new Integer(id), document.getField("DOCID").stringValue(), termWeight, "hhkhdkfhdkhfkdsh");
+						Result result = new Result(new Integer(id), document.getField("DOCID").stringValue(), termWeight, storedField);
 						results.put(id, result);
 					}
 				}
@@ -233,6 +239,22 @@ public class EasySearchEngine {
 		return null;
 	}
 
+	public String extractData(String text) {
+		
+		StringBuffer sb = new StringBuffer();
+		
+		try {
+			if (text != null && !text.isEmpty()) {
+				sb.append(text.substring(0, 400));
+				sb.append("...");
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		return sb.toString();
+	}
+	
 	public String highlightedText() {
 		
 		try {
@@ -262,14 +284,14 @@ public class EasySearchEngine {
 				while (docs.next()) {
 					Integer id = docs.doc(); 
 					Document document = indexReader.document(id);	
-					String storedField = document.get(AppConstants.CONTENT_FIELD);
+					
 				    TokenStream stream = analyzer.tokenStream("FIELDNAME", new StringReader(text.toString()));
 				    
 				    //Fragmenter fragmenter = new SimpleSpanFragmenter(scorer);
 				    //highlighter.setTextFragmenter(fragmenter);
 				    
-				    String fragment = highlighter.getBestFragment(analyzer, AppConstants.CONTENT_FIELD, storedField);
-				    System.out.println(fragment); 
+				    //String fragment = highlighter.getBestFragment(analyzer, AppConstants.CONTENT_FIELD, storedField);
+				    System.out.println(storedField); 
 				}
 			}
 		} catch (Exception e) {
@@ -341,7 +363,7 @@ public class EasySearchEngine {
 				double score = result.score;
 				Document doc = ixReader.document(result.id); // Also, you can get the document from index reader
 				String docid = doc.getField("DOCID").stringValue();
-				System.out.println("Result No."+(pos+1)+": Lucene id = "+id+", DOCID = "+docid+", score = "+score);
+				//System.out.println("Result No."+(pos+1)+": Lucene id = "+id+", DOCID = "+docid+", score = "+score);
 			}
 		} catch (Exception e) {
 			System.out.println("Exception - displayResults: " + e.toString());
@@ -396,6 +418,43 @@ public class EasySearchEngine {
 		return results;
 	}
 
+   public static void generateScript() {
+	   File file = new File("/Users/Deminem/Desktop/MSC_workspace/Search_Engine/results/queries.txt");
+	   
+	   
+	   
+	   try {
+		   BufferedReader br = new BufferedReader(new FileReader(file));
+		   
+		   Integer counter = 1;
+		   String nextLine;
+		   EasySearchEngine engine = new EasySearchEngine();
+		   
+		   while ((nextLine = br.readLine()) != null) {
+			   if (nextLine.indexOf("*FIND") <= -1 && nextLine.indexOf("*STOP") <= -1) {
+				   System.out.print("\n");
+				   
+				   StringBuffer sb = new StringBuffer(counter.toString() + " ");
+				   
+				   Result[] result = engine.performSearch(nextLine);
+				   for (Result r : result) {
+					  sb.append(" ").append(r.docId);
+				   }
+				   System.out.println(sb.toString());
+				   counter++;
+			   }
+			 
+		   }
+		   br.close();
+		   
+	} catch (Exception e) {
+		// TODO: handle exception
+	}
+	 
+	   
+   }
+   
+   
 	public static void main (String args[]) {
 
 		try {
@@ -404,10 +463,15 @@ public class EasySearchEngine {
 //			IndexReader indexReader = IndexReader.open(indexDir);
 //			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
 //
-			String query = "KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .";
-//			
 			EasySearchEngine engine = new EasySearchEngine();
-//			Result[] results = engine.performSearch(query);
+			
+			String query = "KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .";	
+			Result[] results = engine.performSearch(query);
+			//generateScript();
+			
+			
+			
+			
 //
 //			Map<Integer, Float> doc = new HashMap<Integer, Float>();
 //			doc.put(80, 6.0F);
