@@ -90,11 +90,7 @@ public class Application extends Controller {
         if(ids==null)
             index();
         System.out.println(ids);
-        String[] Ids=ids.split(",");
-        List<Integer>docIds=new LinkedList<Integer>();
-        for(String docId:Ids)
-            docIds.add(Integer.parseInt(docId));
-        Result[] results=engine.performUserRelevanceFeedback(docIds, true);
+        Result[] results=engine.performUserRelevanceFeedback(ids);
         
         after=new Date();
         time=after.getTime()- before.getTime();

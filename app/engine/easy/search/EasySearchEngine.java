@@ -409,6 +409,26 @@ public class EasySearchEngine {
 		}
 	}	
 
+        
+        
+        	public Result[] performUserRelevanceFeedback(String Ids) {
+
+		Result[] results = null;
+
+		try {
+			if (Ids!=null&& !Ids.isEmpty()) {
+				Query q = null;
+
+				q=RelevanceFeedBackUtil.performUpAndDown(Ids);
+				//perform the search again with new formulated query!
+				results = performSearch(q);
+			}
+		} catch (Exception e) {
+			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
+		}
+
+		return results;
+	}
 
 	public static void main (String args[]) {
 

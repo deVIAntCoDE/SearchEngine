@@ -300,4 +300,70 @@ public class RelevanceFeedBackUtil {
 			return map.get(k1).compareTo(map.get(k2));
 		}
 	}
+        
+        public static Query performUpAndDown(String ids) throws IOException {
+            float boosta=0.0F;
+            float Boosta=0.0F;
+            String[] Ids=ids.split(",");
+            
+
+		Query q = null;
+		
+		try {
+			final Map<String, Integer> frequencyMap = new HashMap<String, Integer>();
+			Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
+			List<String> termsList = new ArrayList<String>();
+
+			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
+			IndexReader indexReader = IndexReader.open(indexDir);
+			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
+			Integer docId=0;
+			for (String Id : Ids) {
+				if(Id.startsWith("-")){
+                                    boosta=-1.0F;
+                                    Boosta=-2.0F;
+                                    System.out.println("-----------------------------------------negative booster------"+Id);
+                                    docId=Integer.parseInt(Id.substring(1));
+                                }else{
+                                    boosta=1.0F;
+                                     Boosta=2.0F;
+                                     System.out.println("-----------------------------------------positive booster------"+Id);
+                                     docId=Integer.parseInt(Id);
+                                }
+                                
+				TermFreqVector tfv = indexReader.getTermFreqVector(docId, "CONTENT");
+				Document doc = indexReader.document(docId);
+				float boost = doc.getBoost() + boosta;
+				doc.setBoost(boost);
+				
+				System.out.print("DOC : "+ docId + " Field : " + tfv.getField() + "-----------------------------------userrelevance docs\n");
+				
+				for (int i=0; i < tfv.getTermFrequencies().length; i++) {
+					termsList.add(tfv.getTerms()[i]);
+					System.out.println("TERM : "+ tfv.getTerms()[i] + " FREQ : " + tfv.getTermFrequencies()[i]);
+					frequencyMap.put(tfv.getTerms()[i], tfv.getTermFrequencies()[i]);
+				}
+				
+				//put the document with doc id.
+				documentMap.put(docId, doc);
+			}
+			
+			//close the index reader;
+			indexReader.close();
+			
+			//Boost the terms visibility in documents, so these documents more frequently for specific search terms.
+			q = computeTopTermQuery(termsList, frequencyMap, AppConstants.TOP_DOCUMENTS);
+                        
+                        
+			q.setBoost(Boosta);
+			
+			//Update the documents with their boost.
+			//EasySearchIndexBuilder.updateDocuments(documentMap);
+
+		} catch (Exception e) {
+			System.out.println("Exception: performThumbsUp" + e.toString());
+		}
+
+		return q;
+	}
 }

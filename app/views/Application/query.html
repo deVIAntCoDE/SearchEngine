@@ -6,6 +6,7 @@
 <script type="text/javascript">
     var ids = [];
     function pickId(id){
+        console.debug(id);
         ids.push(id);
         console.debug(ids);
     }
@@ -65,7 +66,7 @@
                                 <tr class="${result_parity}" style="height: 30px">
                                     <td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
                                     <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id})"/></td>
-                                    <td><input type="checkbox" name="down" value="${result.id}" /></td>
+                                    <td><input type="checkbox" name="down" value="${result.id}" onclick="pickId('-'+${result.id})"/></td>
                                 </tr>
                                 #{/list}
                             </tbody>
