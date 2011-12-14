@@ -24,6 +24,8 @@ import java.util.Set;
 
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.MockAnalyzer;
+import org.apache.lucene.analysis.MockTokenizer;
 import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -32,8 +34,16 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.highlight.Fragmenter;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
+import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.search.spell.PlainTextDictionary;
 import org.apache.lucene.search.spell.SpellChecker;
 import org.apache.lucene.store.Directory;
@@ -121,9 +131,10 @@ public class EasySearchEngine {
 	public Result[] performSearch(String query) {
 
 		Query q = getQuery(query);
-		return performSearch(q);
+		return performSearch(q, null);
 	}
 
+	
 	/**
 	 * Perform the search for given query
 	 * 
@@ -131,7 +142,7 @@ public class EasySearchEngine {
 	 * @return the list of highest ranked results.
 	 * @throws Exception if one is thrown.
 	 */
-	public Result[] performSearch(Query query) {
+	public Result[] performSearch(Query query, Map<Integer, Float> relevanceDocMap) {
 
 		Result[] results = null;
 		try {
@@ -143,7 +154,8 @@ public class EasySearchEngine {
 			System.out.println("\n >> QUERY: " + query.toString());
 
 			// Get the results!!
-			results = getResults(query, indexReader, esiReader);
+			results = getResults(query, indexReader, esiReader, relevanceDocMap);
+			
 			//Display the results!
 			displayResults(results, indexReader);
 
@@ -153,7 +165,7 @@ public class EasySearchEngine {
 
 		return results;
 	}
-
+	
 	/**
 	 * Computes the results on ranking function and other scoring factors.
 	 * 
@@ -165,7 +177,7 @@ public class EasySearchEngine {
 	 * @throws Exception if one is thrown.
 	 */
 	public Result[] getResults(Query query, IndexReader ixReader, 
-			EasySearchIndexReader esiReader) {
+			EasySearchIndexReader esiReader, Map<Integer, Float> relevanceDocMap) {
 
 		Map<Integer, Result> results = null;
 
@@ -184,7 +196,7 @@ public class EasySearchEngine {
 				int docNum = esiReader.recordCount(AppConstants.CONTENT_FIELD); // get the total record of the field from lucene extra index (you may think it is also possible to use ixreader.maxDoc() here, but the ixreader.maxDoc() only returns the number of documents, while some documents may not have the search field (although every document has the search field in this example))
 
 				while (docs.next()) {
-					int id = docs.doc(); // get the internal lucene's id of the document
+					Integer id = docs.doc(); // get the internal lucene's id of the document
 					int termFreq = docs.freq(); // get the frequency of the term in this document
 					int docLen = esiReader.docLength(id, AppConstants.CONTENT_FIELD); // get the length of the document from lucene extra index.
 					double avgDocLen = esiReader.avgFieldLength(AppConstants.CONTENT_FIELD); // get the average length of the search field from lucene extra index.
@@ -195,12 +207,18 @@ public class EasySearchEngine {
 					//System.out.println(bm25.getInfo());
 
 					// Also add the document boost in the ranking score.
-					double termWeight = bm25.score(termFreq, docNum, docLen, avgDocLen, 1d, docFreq) + document.getBoost();
-
+					double termWeight = bm25.score(termFreq, docNum, docLen, avgDocLen, 1d, docFreq);
+					
+					//Add each document relevance score!
+					if (relevanceDocMap != null && !relevanceDocMap.isEmpty() && relevanceDocMap.containsKey(id))
+						termWeight += relevanceDocMap.get(id);
+					
+					System.out.println("lucene id" + id  + " Doc id " + document.getField("DOCID").stringValue() + "wieght" + termWeight);
+					
 					if(results.containsKey(id)){
 						results.get(id).score = results.get(id).score + termWeight;
 					} else{
-						Result result = new Result(new Integer(id), termWeight, "text");
+						Result result = new Result(new Integer(id), document.getField("DOCID").stringValue(), termWeight, "hhkhdkfhdkhfkdsh");
 						results.put(id, result);
 					}
 				}
@@ -215,6 +233,53 @@ public class EasySearchEngine {
 		return null;
 	}
 
+	public String highlightedText() {
+		
+		try {
+		    Analyzer analyzer = new EasySearchAnalyzer();
+
+		    PhraseQuery phraseQuery = new PhraseQuery();
+		    phraseQuery.add(new Term("CONTENT", "KENNEDY"));
+		    phraseQuery.add(new Term("CONTENT", "ADMINISTRATION"));
+
+			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
+			IndexReader indexReader = IndexReader.open(indexDir);
+			
+		    Query query = getQuery(phraseQuery.toString());
+		    QueryScorer scorer = new QueryScorer(query, AppConstants.CONTENT_FIELD);
+		    Highlighter highlighter = new Highlighter(scorer);
+		    
+			Set<Term> terms = new HashSet<Term>();
+			query.extractTerms(terms);
+			
+			Iterator<Term> itr = terms.iterator();
+			StringBuffer text = new StringBuffer("");
+			
+			while (itr.hasNext()) {
+				Term term = itr.next();
+				TermDocs docs = indexReader.termDocs(term);
+				
+				while (docs.next()) {
+					Integer id = docs.doc(); 
+					Document document = indexReader.document(id);	
+					String storedField = document.get(AppConstants.CONTENT_FIELD);
+				    TokenStream stream = analyzer.tokenStream("FIELDNAME", new StringReader(text.toString()));
+				    
+				    //Fragmenter fragmenter = new SimpleSpanFragmenter(scorer);
+				    //highlighter.setTextFragmenter(fragmenter);
+				    
+				    String fragment = highlighter.getBestFragment(analyzer, AppConstants.CONTENT_FIELD, storedField);
+				    System.out.println(fragment); 
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Exception: getResults " + e.toString());
+		}
+
+		return null;
+	}
+	
+	
 	/**
 	 * Sort the results on highest ranking.
 	 * 
@@ -274,7 +339,7 @@ public class EasySearchEngine {
 				Result result = results[pos];
 				int id = result.id;
 				double score = result.score;
-				Document doc = ixReader.document(result.id); // Also, you can get the document from indexreader
+				Document doc = ixReader.document(result.id); // Also, you can get the document from index reader
 				String docid = doc.getField("DOCID").stringValue();
 				System.out.println("Result No."+(pos+1)+": Lucene id = "+id+", DOCID = "+docid+", score = "+score);
 			}
@@ -303,7 +368,7 @@ public class EasySearchEngine {
 			Query newQuery = RelevanceFeedBackUtil.performPesduoRelevance(results);
 
 			//Get the pesudo relevance results
-			results = performSearch(newQuery);
+			results = performSearch(newQuery, null);
 
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
@@ -311,117 +376,18 @@ public class EasySearchEngine {
 
 		return results;
 	}
-
-	/**
-	 * Perform the user relevance feedback
-	 * 
-	 * @param the array with results detail
-	 * @param ixReader the index reader
-	 * @throws Exception if one is thrown.
-	 */
-	public Result[] performUserRelevanceFeedback(List<Integer> docIds, boolean isThumbsUp) {
+        
+   public Result[] performUserRelevanceFeedback(Map<Integer, Float> documents) {
 
 		Result[] results = null;
 
 		try {
-			if (!docIds.isEmpty()) {
+			if (!documents.isEmpty()) {
 				Query q = null;
 
-				if (isThumbsUp)
-					q = RelevanceFeedBackUtil.performThumbsUp(docIds);
-				else
-					q = RelevanceFeedBackUtil.performThumbsDown(docIds);
-
+				q = RelevanceFeedBackUtil.performUpAndDown(documents);
 				//perform the search again with new formulated query!
-				results = performSearch(q);
-			}
-		} catch (Exception e) {
-			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
-		}
-
-		return results;
-	}
-
-	protected List<TermFreq> getTopTerms(List<Term> terms, IndexReader ixReader,
-			int numTermsToReturn) {
-
-		List<TermFreq> result = null;
-
-		try {
-			result = new ArrayList<TermFreq>();
-			Iterator<Term> itr = terms.iterator();
-
-			while (itr.hasNext()) {
-				Term term = itr.next();
-				TermDocs docs = ixReader.termDocs(term);
-
-				while (docs.next()) {
-					int docId = docs.doc();
-					TermFreqVector[] tfvs = ixReader.getTermFreqVectors(docId);
-
-					for (int i = 0; tfvs != null && i < tfvs.length; i++) {
-						TermFreqVector tfv = tfvs[i];
-
-						String[] suggestedTerms = tfv.getTerms();// get the
-																	// terms
-						int[] freqs = tfv.getTermFrequencies();// get the
-																// frequencies
-
-						for (int j = 0; j < suggestedTerms.length; j++) {
-							// create a container for the Term and Frequency
-							// information
-							result.add(new TermFreq(suggestedTerms[j], freqs[j]));
-						}
-
-						// Sort by frequency
-						Collections.sort(result, new Comparator<TermFreq>() {
-							public int compare(TermFreq tf1, TermFreq tf2) {
-								if (tf1.freq < tf2.freq) {
-									return 1;
-								} else if (tf1.freq > tf2.freq) {
-									return -1;
-								} else {
-									return 0;
-								}
-							}
-						});
-
-						if (numTermsToReturn < result.size()) {
-							result = result.subList(0, numTermsToReturn);
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("Exception: " + e.toString());
-		}
-
-		return result;
-	}
-
-	private class TermFreq {
-		String term; // term
-		double freq; // freq
-
-		TermFreq(String sTerm, double freq) {
-			this.term = sTerm;
-			this.freq = freq;
-		}
-	}	
-
-        
-        
-        	public Result[] performUserRelevanceFeedback(String Ids) {
-
-		Result[] results = null;
-
-		try {
-			if (Ids!=null&& !Ids.isEmpty()) {
-				Query q = null;
-
-				q=RelevanceFeedBackUtil.performUpAndDown(Ids);
-				//perform the search again with new formulated query!
-				results = performSearch(q);
+				results = performSearch(q, documents);
 			}
 		} catch (Exception e) {
 			System.out.println("Exception - performUserRelevanceFeedback: " + e.toString());
@@ -434,19 +400,23 @@ public class EasySearchEngine {
 
 		try {
 			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
-
-			IndexReader indexReader = IndexReader.open(indexDir);
-			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
-
+			
+//			IndexReader indexReader = IndexReader.open(indexDir);
+//			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
+//
+			String query = "KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .";
+//			
 			EasySearchEngine engine = new EasySearchEngine();
-			Result[] results = engine.performSearch("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .");
+//			Result[] results = engine.performSearch(query);
+//
+//			Map<Integer, Float> doc = new HashMap<Integer, Float>();
+//			doc.put(80, 6.0F);
+//			engine.performUserRelevanceFeedback(doc);
 
-			List<Integer> docIds = new ArrayList<Integer>();
-			docIds.add(results[8].id);
-			docIds.add(results[13].id);
-
-			results = engine.performUserRelevanceFeedback(docIds, Boolean.TRUE);
-
+			//
+			engine.highlightedText();
+			
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}

@@ -21,33 +21,35 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
+import engine.easy.util.AppConstants;
+
 public class LuceneSearchIndex {
 	
 	public static void main(String[] args){
 		try{
 			
 			// check parameters
-			if(args==null || args.length!=2 || args[0]==null || args[1]==null){
-				System.out.println("Invalid parameters!");
-				System.out.println("To run the program in command line mode, parameters should be:");
-				System.out.println("\targs[0]: path of the index directory.");
-				System.out.println("\targs[1]: search query (if your query include white space, you need to use \" at both sides of the query when inputting parameters).");
-				System.out.println("Also, make sure that args[0] is the index directory created in the tutorial for building index.");
-				System.exit(-1);
-			}
+//			if(args==null || args.length!=2 || args[0]==null || args[1]==null){
+//				System.out.println("Invalid parameters!");
+//				System.out.println("To run the program in command line mode, parameters should be:");
+//				System.out.println("\targs[0]: path of the index directory.");
+//				System.out.println("\targs[1]: search query (if your query include white space, you need to use \" at both sides of the query when inputting parameters).");
+//				System.out.println("Also, make sure that args[0] is the index directory created in the tutorial for building index.");
+//				System.exit(-1);
+//			}
 			
 			// check the source directory
-			File pathSrc = new File(args[0]);
+			File pathSrc = new File(AppConstants.INDEX_DIR_PATH);
 			if(!pathSrc.exists()){
 				System.out.println("The specified index path does not exist: "+pathSrc);
 			}
 			
-			Directory ixdir = FSDirectory.open(new File(args[0]));
+			Directory ixdir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
 			IndexSearcher ixSearcher = new IndexSearcher(ixdir);
 			QueryParser qparser = new QueryParser(Version.LUCENE_30, "CONTENT", new StandardAnalyzer(Version.LUCENE_30));
 			
 			// now you can use the query parser to parse the query.
-			Query q = qparser.parse(args[1]);
+			Query q = qparser.parse("KENNEDY ADMINISTRATION PRESSURE ON NGO DINH DIEM TO STOP SUPPRESSING THE BUDDHISTS .");
 			
 			// now search for documents using the qury, results will be stored in a Hits object
 			ScoreDoc[] hits = ixSearcher.search(q, null, 10).scoreDocs;

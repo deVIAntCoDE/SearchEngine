@@ -65,7 +65,9 @@ public class RelevanceFeedBackUtil {
 				System.out.print("DOC : "+ docId + " Field : " + tfv.getField() + "\n");
 				
 				for (int i=0; i < tfv.getTermFrequencies().length; i++) {
-					termsList.add(tfv.getTerms()[i]);
+					if (!termsList.contains(tfv.getTerms()[i]))
+						termsList.add(tfv.getTerms()[i]);
+					
 					System.out.println("TERM : "+ tfv.getTerms()[i] + " FREQ : " + tfv.getTermFrequencies()[i]);
 					frequencyMap.put(tfv.getTerms()[i], tfv.getTermFrequencies()[i]);
 				}
@@ -120,7 +122,9 @@ public class RelevanceFeedBackUtil {
 				System.out.print("DOC : "+ docId + " Field : " + tfv.getField() + "\n");
 				
 				for (int i=0; i < tfv.getTermFrequencies().length; i++) {
-					termsList.add(tfv.getTerms()[i]);
+					if (!termsList.contains(tfv.getTerms()[i]))
+						termsList.add(tfv.getTerms()[i]);
+					
 					System.out.println("TERM : "+ tfv.getTerms()[i] + " FREQ : " + tfv.getTermFrequencies()[i]);
 					frequencyMap.put(tfv.getTerms()[i], tfv.getTermFrequencies()[i]);
 				}
@@ -168,15 +172,16 @@ public class RelevanceFeedBackUtil {
 			
 			for (Result result : results) {
 				
-				TermFreqVector tfv = indexReader.getTermFreqVector(result.id, "CONTENT");
+				TermFreqVector tfv = indexReader.getTermFreqVector(result.id, AppConstants.CONTENT_FIELD);
 				Document doc = indexReader.document(result.id);
 				boost += doc.getBoost() + AppConstants.THUMBS_UP;
 				
 				System.out.print("DOC : "+ result.id + " Field : " + tfv.getField() + "\n");
 				
 				for (int i=0; i < tfv.getTermFrequencies().length; i++) {
-					termsList.add(tfv.getTerms()[i]);
-					//System.out.println("TERM : "+ tfv.getTerms()[i] + " FREQ : " + tfv.getTermFrequencies()[i]);
+					if (!termsList.contains(tfv.getTerms()[i]))
+						termsList.add(tfv.getTerms()[i]);
+
 					frequencyMap.put(tfv.getTerms()[i], tfv.getTermFrequencies()[i]);
 				}
 			}
@@ -263,23 +268,23 @@ public class RelevanceFeedBackUtil {
 				}
 			}
 		}
-
-		//Top results
-		List<String> topArray = null;
-		if (topTerms.size() > numOf) {
-			topArray = new ArrayList<String>(numOf);
-
-			for (int position=0; position < numOf; position++) {
-				topArray.add(topTerms.get(position));
-			}
-		}
-		else {
-			topArray = topTerms;
-		}
+//
+//		//Top results
+//		List<String> topArray = null;
+//		if (topTerms.size() > numOf) {
+//			topArray = new ArrayList<String>(numOf);
+//
+//			for (int position=0; position < numOf; position++) {
+//				topArray.add(topTerms.get(position));
+//			}
+//		}
+//		else {
+//			topArray = topTerms;
+//		}
 
 		StringBuilder termBuf = new StringBuilder();
 		BooleanQuery q = new BooleanQuery();
-		for (String topTerm : topArray) {
+		for (String topTerm : topTerms) {
 			termBuf.append(topTerm).append("(").append(frequencyMap.get(topTerm)).append(");");
 			q.add(new TermQuery(new Term("CONTENT", topTerm)), Occur.SHOULD);
 		}
@@ -301,14 +306,12 @@ public class RelevanceFeedBackUtil {
 		}
 	}
         
-        public static Query performUpAndDown(String ids) throws IOException {
-            float boosta=0.0F;
-            float Boosta=0.0F;
-            String[] Ids=ids.split(",");
-            
+	public static Query performUpAndDown(Map<Integer, Float> docMap) throws IOException {
+		float boost = 0.0F;
+		//String[] Ids = ids.split(",");
 
 		Query q = null;
-		
+
 		try {
 			final Map<String, Integer> frequencyMap = new HashMap<String, Integer>();
 			Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
@@ -317,48 +320,32 @@ public class RelevanceFeedBackUtil {
 			Directory indexDir = FSDirectory.open(new File(AppConstants.INDEX_DIR_PATH));
 			IndexReader indexReader = IndexReader.open(indexDir);
 			EasySearchIndexReader esiReader = new EasySearchIndexReader(indexReader);
-			Integer docId=0;
-			for (String Id : Ids) {
-				if(Id.startsWith("-")){
-                                    boosta=-1.0F;
-                                    Boosta=-2.0F;
-                                    System.out.println("-----------------------------------------negative booster------"+Id);
-                                    docId=Integer.parseInt(Id.substring(1));
-                                }else{
-                                    boosta=1.0F;
-                                     Boosta=2.0F;
-                                     System.out.println("-----------------------------------------positive booster------"+Id);
-                                     docId=Integer.parseInt(Id);
-                                }
-                                
-				TermFreqVector tfv = indexReader.getTermFreqVector(docId, "CONTENT");
-				Document doc = indexReader.document(docId);
-				float boost = doc.getBoost() + boosta;
-				doc.setBoost(boost);
-				
-				System.out.print("DOC : "+ docId + " Field : " + tfv.getField() + "-----------------------------------userrelevance docs\n");
+
+			for (Integer docId : docMap.keySet()) {
+			
+				TermFreqVector tfv = indexReader.getTermFreqVector(docId, AppConstants.CONTENT_FIELD);
+				Document doc = indexReader.document(docId);				
+				System.out.print("DOC : "+ docId + " Field : " + tfv.getField() + "\n");
 				
 				for (int i=0; i < tfv.getTermFrequencies().length; i++) {
-					termsList.add(tfv.getTerms()[i]);
+					if (!termsList.contains(tfv.getTerms()[i]))
+						termsList.add(tfv.getTerms()[i]);
+					
 					System.out.println("TERM : "+ tfv.getTerms()[i] + " FREQ : " + tfv.getTermFrequencies()[i]);
 					frequencyMap.put(tfv.getTerms()[i], tfv.getTermFrequencies()[i]);
 				}
-				
-				//put the document with doc id.
+
+				// put the document with doc id.
 				documentMap.put(docId, doc);
 			}
-			
-			//close the index reader;
+
+			// close the index reader;
 			indexReader.close();
-			
-			//Boost the terms visibility in documents, so these documents more frequently for specific search terms.
+
+			// Boost the terms visibility in documents, so these documents more
+			// frequently for specific search terms.
 			q = computeTopTermQuery(termsList, frequencyMap, AppConstants.TOP_DOCUMENTS);
-                        
-                        
-			q.setBoost(Boosta);
-			
-			//Update the documents with their boost.
-			//EasySearchIndexBuilder.updateDocuments(documentMap);
+			q.setBoost(AppConstants.BOOST);
 
 		} catch (Exception e) {
 			System.out.println("Exception: performThumbsUp" + e.toString());
