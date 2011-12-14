@@ -1,33 +1,99 @@
-<!--
-To change this template, choose Tools | Templates
-and open the template in the editor.
--->
-<!DOCTYPE html>
-
-<h2>Search Results: </h2>
-<div> <span style="color: white">Result time ${time} milliseconds</span> </div>
-<div>
+#{set 'moreStyles'}
     
-    
-<table class="crudContent">
-    <tr>
-        <td>Document Id</td>
-        <td>Document </td>
-        <td>Document Score</td>
-        <td>UP</td>
-        <td>DOwn</td>
-    </tr>
-    
-    #{list items:results, as:'result'}
-    <tr><td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
-        <td><input type="checkbox" name="up" value="${result.id}" /></td>
-        <td><input type="checkbox" name="down" value="${result.id}" /></td></tr>
-    #{/list}
-    
-
-    
-</table>
-${query}
+    <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/tags.css'}" />
+#{/set}
 
 
+     
+<div class="post ">
+    <h2 class="post-title">
+        <a href="">Search Results</a>
+    </h2>
+    <div class="post-metadata">
+        <span class="post-author">Query time:</span>,
+        <span class="post-date">milliseconds</span>
+                    <span class="post-comments">
+                &nbsp;|&nbsp; condition: insert condition here with or without relevance feedback!!!
+                            </span>
+    </div>
+    
+    <div class="post-content">
+        <div id="crud">
+            <div id="crudContent">
+                <div id="crudList" class="Tags">
+                    <div id="crudListTable">
+                        <table style="width: 100%">
+                            <thead style="color: #B8C569">
+                                <tr style="height: 40px; text-align: left; background: #B8C569" bgcolor="#B8C569">
+                                    <th style="color: #3C4313">
+                                        Document ID
+                                    </th>
+                                    <th style="color: #3C4313">
+                                        Text Highlight
+                                    </th>
+                                    <th style="color: #3C4313">
+                                        Document Score
+                                    </th>
+                                    <th style="color: #3C4313">
+                                        Rank Up
+                                    </th>
+                                    <th style="color: #3C4313">
+                                        Rank Down
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                #{list items:results, as:'result'}
+                                <tr class="${result_parity}" style="height: 30px">
+                                    <td>${result.id}</td><td>${result.text}</td><td>${result.score}</td>
+                                    <td><input type="checkbox" name="up" value="${result.id}" /></td>
+                                    <td><input type="checkbox" name="down" value="${result.id}" /></td>
+                                </tr>
+                                #{/list}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="older-posts">
+        <h3>Relevance FeedBack  <span class="from">for this query</span></h3>
+        <div class="comments">
+            <div class="comment-content">
+                Pseudo- Relevance Feedback !<br/>
+            </div>
+        </div>
+        <div class="comment-content">
+            <div class="about">Detail: </div>
+          
+        </div>
+    </div>
 </div>
+<div class="older-posts">
+            <h3>Older posts <span class="from">from this blog</span></h3>
+
+                             
+<div class="post teaser">
+    
+    <div class="post-metadata">
+        <span class="post-comments">
+                &nbsp;|&nbsp;   User Relevance Feedback<br/>
+                            </span>
+    </div>
+</div>
+                            
+<div class="post teaser">
+   
+    <div class="post-metadata">
+                    <span class="post-comments">
+                &nbsp;|&nbsp; Pseudo Relevance FeedBack
+                            </span>
+                    </div>
+</div>
+</div>
+
+    
+
+

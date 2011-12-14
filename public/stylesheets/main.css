@@ -414,6 +414,7 @@ form label {
 
 .crudContent table {
     border: none !important;
+    width: 700px;
 }
 
 .crudContent table td {
@@ -552,3 +553,4 @@ tr.odd {
 .hasError {
     background: pink;
 }
+
