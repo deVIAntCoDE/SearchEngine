@@ -62,11 +62,11 @@ public class Application extends Controller {
             }
             after = new Date();
             t = after.getTime() - before.getTime();
-            System.out.println("query time=============="+time);
+          
             time=String.valueOf(t);
           
-            
-            render("Application/index.html",results, time);
+              System.out.println("query time=============="+time);
+            render("Application/index.html",results,time);
     }
        
        

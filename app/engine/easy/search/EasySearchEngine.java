@@ -245,7 +245,7 @@ public class EasySearchEngine {
 		
 		try {
 			if (text != null && !text.isEmpty()) {
-				sb.append(text.substring(0, 400));
+				sb.append(text.substring(0, 150));
 				sb.append("...");
 			}
 		} catch (Exception e) {

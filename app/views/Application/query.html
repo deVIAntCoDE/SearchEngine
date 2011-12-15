@@ -5,19 +5,28 @@
 
 <script type="text/javascript">
     var index= new Array(15);
-    function count(docID){
-        console.debug(index);
-        index[docID]=index[docID]+1;
-    }
-    
-    
+    var neg=new Array(15);
+  
     var ids = [];
-    function pickId(id){
+    function pickId(id,num){
         console.debug(id);
         ids.push(id);
         console.debug(ids);
+        if(num)
+            {
+                
+            }else{
+               index[num]++; 
+            }
+        
+        
     }
-    
+    function neg(a){
+        neg[a]++;
+        document.getElementById(a+"b").value=neg[a];
+        
+        console.debug(neg[a]);
+    }
     function urf(){
         var url = "@{Application.userRelevanceFeedback()}?ids="+ids;
         window.location=url;
@@ -26,12 +35,7 @@
 </script>
 
 
-
-
-#{if time}
-
-gagabooboo
-#{/if}
+${time}
 
      
 <div class="post ">
@@ -79,8 +83,9 @@ gagabooboo
                                 #{list items:results, as:'result'}
                                 <tr class="${result_parity}" style="height: 30px;">
                                     <td>${result_index}</td><td>${result.docId}</td><td>${result.higlightedText}</td><td>${result.score}</td>
-                                    <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id});count(${result_index})"/><img src="public/images/up.png"/></td>
-                                    <td><input type="checkbox" name="down" value="${result.id}" onclick="pickId('-'+${result.id})"/><img src="public/images/down.png"/></td>
+                                    <td><img src="/public/images/up.png" onclick="pickId(${result.id},${result_index})"/><div id="${result_index}a"></div></td>
+                                    <td><img src="/public/images/down.png" onclick="pickId('-'+${result.id},${result_index});neg(${result_index})"/><div id="${result_index}b"></div></td>
+                    
                                 </tr>
                                 #{/list}
                             </tbody>
