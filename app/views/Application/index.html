@@ -8,7 +8,7 @@
 
 <form action="@{Application.query()}" autocomplete="off" method="get">
     <span style="color:white">Query</span> <input id="txt" size="70" name="query" value="${params.query}" /> 
-    <input type="submit"  value="Search" autocomplete=off/>
+    <input type="image"  src="/public/images/search.png" value="Search" autocomplete=off/>
     <div id="suggest" style="visibility:hidden;border:#000000 1px solid;width:150px;"></div>
         <div id="psuedorel"><br/>
             <input type="radio" name="rf" value="prf" /><span style="color: white">Use Pseudo Relevant FeedBack</span>
