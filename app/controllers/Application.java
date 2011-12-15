@@ -64,6 +64,7 @@ public class Application extends Controller {
             t = after.getTime() - before.getTime();
             System.out.println("query time=============="+time);
             time=String.valueOf(t);
+          
             
             render("Application/index.html",results, time);
     }

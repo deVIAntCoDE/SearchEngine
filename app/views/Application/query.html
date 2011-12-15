@@ -4,6 +4,13 @@
 #{/set}
 
 <script type="text/javascript">
+    var index= new Array(15);
+    function count(docID){
+        console.debug(index);
+        index[docID]=index[docID]+1;
+    }
+    
+    
     var ids = [];
     function pickId(id){
         console.debug(id);
@@ -70,10 +77,10 @@ gagabooboo
                             </thead>
                             <tbody>
                                 #{list items:results, as:'result'}
-                                <tr class="${result_parity}" style="height: 30px; text-align: center">
+                                <tr class="${result_parity}" style="height: 30px;">
                                     <td>${result_index}</td><td>${result.docId}</td><td>${result.higlightedText}</td><td>${result.score}</td>
-                                    <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id})"/></td>
-                                    <td><input type="checkbox" name="down" value="${result.id}" onclick="pickId('-'+${result.id})"/></td>
+                                    <td><input type="checkbox" name="up" value="${result.id}" onclick="pickId(${result.id});count(${result_index})"/><img src="public/images/up.png"/></td>
+                                    <td><input type="checkbox" name="down" value="${result.id}" onclick="pickId('-'+${result.id})"/><img src="public/images/down.png"/></td>
                                 </tr>
                                 #{/list}
                             </tbody>
